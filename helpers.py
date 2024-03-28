@@ -1,6 +1,7 @@
 import re
 from urllib.error import HTTPError
 from urllib.request import urlretrieve
+import csv
 
 def extract_video_id(youtube_url):
     # Regular expression for extracting the video ID from the full YouTube URL
@@ -39,3 +40,35 @@ def get_small_thumbnail(youtube_url,uri):
             return False 
         return True 
     return False
+
+def count_lines_in_csv(file_path):
+    """
+    Counts the number of lines in a CSV file.
+
+    Parameters:
+    - file_path: str, the path to the CSV file.
+
+    Returns:
+    - int, the number of lines in the CSV file.
+    """
+    with open(file_path, 'r') as file:
+        csv_reader = csv.reader(file)
+        line_count = sum(1 for row in csv_reader)
+    return line_count
+
+def get_last_video_from_csv(file_path):
+    """
+    Retrieves the last line of a CSV file.
+
+    Parameters:
+    - file_path: str, the path to the CSV file.
+
+    Returns:
+    - list, the last line of the CSV file as a list of values.
+    """
+    with open(file_path, 'r') as file:
+        csv_reader = csv.reader(file)
+        last_line = None
+        for row in csv_reader:
+            last_line = row  # This will end up being the last row
+    return last_line[0]

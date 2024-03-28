@@ -1,12 +1,11 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-os.environ['TF_XLA_FLAGS'] = '--tf_xla_enable_xla_devices=false'
 import numpy as np
 import cv2
 #import matplotlib.pyplot as plt
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D
-from keras.models import Model
+from keras.models import Model, load_model
 from threading import Thread
 from PIL import Image
 from time import sleep
@@ -16,11 +15,11 @@ class curiosity():
     difference_margin=0.8 #difference btween the sum of the two sides, if the value is greather than this, it would start moving to sides
     shock_margin=25 # if greater than this value, the algo will stop and watch
     procesimgsize=64#28#42
-    saved_model_uri="tmp/saved_model"
+    saved_model_uri="saved_model.keras"
 
     def __init__(self,savemodel=True,img_width=100,img_height=100):
         self.savemodel=savemodel
-        print("curiosity NN init")
+        print("curiosity NN init, resume model?",savemodel)
 
         self.c=0
         self.last_state="STOP"
@@ -46,7 +45,6 @@ class curiosity():
         except Exception as e:
             print("predict_and_calculate_mse EXCEPTION!!!:",e)
             print("")
-            self.end()
 
         return mse
 
@@ -60,7 +58,7 @@ class curiosity():
 
     def model(self):
         if os.path.isfile(self.saved_model_uri) and self.savemodel:
-            model = keras.models.load_model(self.saved_model_uri)
+            model = load_model(self.saved_model_uri)  # Using load_model directly
             return model
         else:
             input_img = Input(shape=(self.img_height, self.img_width, 3))
@@ -121,8 +119,6 @@ class curiosity():
 
         return corrected_image
 
-    def end(self):
-        if self.savemodel:
-            self.autoencoder.save(self.saved_model_uri)
-            #self.cap.release()
 
+    def save_model(self):
+        self.autoencoder.save(self.saved_model_uri)
