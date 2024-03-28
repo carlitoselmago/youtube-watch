@@ -104,6 +104,8 @@ try:
         for i, thumbnail in enumerate(thumbnails):
             #print(thumbnail.get_attribute("outerHTML"))
             video_url = thumbnail.get_attribute("href")
+            video_url='f'https://youtube.com/watch?v={extract_video_id(video_url)}'
+
             if video_url:
                 if video_url not in all_videos and "short" not in video_url and "channel" not in video_url:
                     video_urls.append(video_url)
