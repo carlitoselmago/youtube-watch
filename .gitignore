@@ -2,7 +2,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+tmp 
+thumbs/*.jpg
+saved_thumbs/*.jpg
+saved_videos.csv
+*.deb
 # C extensions
 *.so
 
