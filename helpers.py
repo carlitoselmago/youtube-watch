@@ -23,3 +23,19 @@ def save_thumbnail(youtube_url,index):
             print(err)   # something wrong with local path
         except HTTPError as err:
             print(err)  # something wrong with url
+
+def get_small_thumbnail(youtube_url,uri):
+    videoid=extract_video_id(youtube_url)
+    image_local_path='saved_thumbs'
+    if videoid:
+        image_url=f'https://img.youtube.com/vi/{videoid}/mqdefault.jpg'
+        try:
+            urlretrieve(image_url, uri)
+        except FileNotFoundError as err:
+            print(err)   # something wrong with local path
+            return False
+        except HTTPError as err:
+            print(err)  # something wrong with url
+            return False 
+        return True 
+    return False

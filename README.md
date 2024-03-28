@@ -2,12 +2,15 @@
 An agent that watches youtube, seeking novelty content
 
 # install
-In this example it uses chrome as the sellenium browser
+In this example it uses firefox as the sellenium browser
 
-The code asumes you have installed uBlock origin, if not disable the lines on driver options
+install the driver and configure it's location
 
-You should check the location of the extension on your system:
+Install an adblock such as ublock origin, it will load if you load your user profile
 
+You should check the location of your profile on your system:
+
+### for chrome:
 go to 
 chrome://version
  In that folder look for 'Extensions' folder. The extension ID for uBlock Origin is cjpalhdlnbpafiamejdnhcphjbkeiagm

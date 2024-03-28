@@ -6,6 +6,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 import requests
 from PIL import Image
 from io import BytesIO
@@ -14,11 +15,14 @@ from helpers import *
 from time import sleep
 
 # Your starting YouTube video URL
-video_url = input("Enter starting youtube video: ")
+video_url = 'https://www.youtube.com/watch?v=Zr2TXJ1Gfh8'#input("Enter starting youtube video: ")
 
 adblockextension='/home/zorin/.var/app/com.google.Chrome/config/google-chrome/Default/Extensions/cjpalhdlnbpafiamejdnhcphjbkeiagm/1.56.0_0'
+userprofile='/home/zorin/.var/app/com.google.Chrome/config/google-chrome/Default'
 
-cur=curiosity(False,336,188)
+
+
+cur=curiosity(False,320,180)
 
 # Create the 'thumbs' directory if it doesn't exist
 if not os.path.exists('thumbs'):
@@ -34,12 +38,16 @@ if os.path.exists(csv_file_path):
 # Setting up the WebDriver with webdriver-manager
 options = webdriver.ChromeOptions()
 options.add_argument(f"load-extension={adblockextension}")
+#options.add_argument(f'user-data-dir={userprofile}')
 options.headless = False  # Run in headless mode
 
 #add ad blocker
 
 
-driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+#driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+fp = webdriver.FirefoxProfile('/home/zorin/.mozilla/firefox/4ryojv0h.default-release')
+
+driver = webdriver.Firefox(fp,executable_path=r'geckodriver')
 
 all_videos=[]
 
@@ -67,6 +75,15 @@ try:
     while True:
         print("---start---",video_url)
         driver.get(video_url)
+        sleep(1)
+        # Wait for the video player to be ready
+        video_player = WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "video"))
+        )
+        
+        # Click on the video player to start playing the video
+        ActionChains(driver).move_to_element(video_player).click().perform()
+        print("Video playback started.")
         sleep(3)
         # Wait for the page to load and for thumbnails to be available
         WebDriverWait(driver, 20).until(
@@ -77,20 +94,41 @@ try:
         #thumbnails = driver.find_elements(By.XPATH, '//a[@id="thumbnail"][@class="yt-simple-endpoint inline-block style-scope ytd-thumbnail"]')
         thumbnails = driver.find_elements(By.ID, "thumbnail")
 
+
         video_urls = []
+        video_titles=[]
         thumbnails_img= []
         mse_scores=[]
 
         # Iterate over thumbnails, download, and save them
         for i, thumbnail in enumerate(thumbnails):
+            #print(thumbnail.get_attribute("outerHTML"))
             video_url = thumbnail.get_attribute("href")
             if video_url:
-                if video_url not in all_videos:
+                if video_url not in all_videos and "short" not in video_url and "channel" not in video_url:
                     video_urls.append(video_url)
                     all_videos.append(video_url)
+                    try:
+                        title_element =thumbnail.find_element(By.XPATH, ".//ancestor::ytd-compact-video-renderer//h3")
+                        video_title = title_element.text if title_element else "No title found"
+                        print("video_title",video_title)
+                    except:
+                        video_title="No title"
+                    video_titles.append(video_title)
                     # Sometimes, the href might not contain a direct link to the thumbnail.
                     # This is a simple workaround to focus on those with direct image sources.
                     try:
+
+                        #new method
+                        img_uri=f'thumbs/thumb_{i}.jpg'
+                        if (get_small_thumbnail(video_url,img_uri)):
+                            thumbnails_img.append(img_uri)
+                            image=cur.prepare_image(img_uri)
+                            mse=cur.predict_and_calculate_mse(image)
+                            mse*=1000
+                            #print("mse",mse)
+                            mse_scores.append(mse)
+                        """    
                         img_url = thumbnail.find_element(By.TAG_NAME, "img").get_attribute("src")
                         if img_url:
                             response = requests.get(img_url)
@@ -106,6 +144,11 @@ try:
                             mse*=1000
                             #print("mse",mse)
                             mse_scores.append(mse)
+                        else:
+                            print("??????????????????????")
+                            print("could not get img url for",video_title)
+                            print("¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿")
+                        """
                     except Exception as e:
                         print(f"Error downloading thumbnail {i}: {e}")
 
@@ -114,10 +157,18 @@ try:
             image=cur.prepare_image(img)
             cur.update_model_with_new_image(image)
         
+
+        print("num scores",mse_scores,"::::::")
         #get the max curiosity score
         maxindex=mse_scores.index(max(mse_scores))
+        sorted_indices = sorted(range(len(mse_scores)), key=lambda i: mse_scores[i], reverse=True)
+        sorted_mse_scores = [mse_scores[i] for i in sorted_indices]
+        sorted_video_urls = [video_urls[i] for i in sorted_indices]
+        sorted_video_titles=[video_titles[i] for i in sorted_indices]
+        
 
-        besturl=video_urls[maxindex]
+        #besturl=video_urls[maxindex]
+        besturl=sorted_video_urls[0]
 
         print("best url:",besturl)
 
@@ -128,7 +179,7 @@ try:
         with open(csv_file_path, mode='a') as file:
             # If you have headers, you can write them first as follows:
             # file.write('Header1,Header2,Header3\n')
-            file.write(besturl + '\n')
+            file.write(besturl + ', '+sorted_video_titles[0]+'\n')
 
         video_url=besturl
 
@@ -138,9 +189,9 @@ try:
         index+=1
 
         #debug
-        print("video_urls",video_urls)
-        print("mse_scores",mse_scores)
-        print("thumbnails_img",thumbnails_img)
+        print("video_urls",sorted_video_urls)
+        print("mse_scores",sorted_mse_scores)
+        print("sorted_video_titles",sorted_video_titles)
         print("#########################################")
         print("")
 

@@ -7,6 +7,8 @@ thumbs/*.jpg
 saved_thumbs/*.jpg
 saved_videos.csv
 *.deb
+~
+geckodriver
 # C extensions
 *.so
 
