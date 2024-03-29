@@ -62,9 +62,10 @@ options.headless = False  # Run in headless mode
 
 
 #driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-fp = webdriver.FirefoxProfile('/home/zorin/.mozilla/firefox/4ryojv0h.default-release')
+#fp = webdriver.FirefoxProfile('/home/zorin/.mozilla/firefox/4ryojv0h.default-release')
 
-driver = webdriver.Firefox(fp,executable_path=r'geckodriver')
+#driver = webdriver.Firefox(fp,executable_path=r'geckodriver')
+driver = webdriver.Firefox(executable_path=r'geckodriver')
 
 all_videos=[]
 
@@ -105,8 +106,11 @@ try:
             EC.presence_of_element_located((By.CSS_SELECTOR, "#player"))
         )
         #driver.execute_script("document.querySelector('player').play();")
-        play_button = driver.find_element(By.CLASS_NAME, 'ytp-play-button')
-        play_button.click()
+        try:
+            play_button = driver.find_element(By.CLASS_NAME, 'ytp-play-button')
+            play_button.click()
+        except:
+            pass
 
         # Click on the video player to start playing the video
         #ActionChains(driver).move_to_element(video_player).click().perform()
