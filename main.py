@@ -62,12 +62,19 @@ options.headless = False  # Run in headless mode
 
 
 #driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-#fp = webdriver.FirefoxProfile('/home/zorin/.mozilla/firefox/4ryojv0h.default-release')
+fp = webdriver.FirefoxProfile('/home/zorin/.mozilla/firefox/4ryojv0h.default-release')
 
-#driver = webdriver.Firefox(fp,executable_path=r'geckodriver')
-driver = webdriver.Firefox(executable_path=r'geckodriver')
+driver = webdriver.Firefox(fp,executable_path=r'geckodriver')
+driver.set_window_position(0, 0)
+driver.maximize_window()
+#driver = webdriver.Firefox(executable_path=r'geckodriver')
 
-all_videos=[]
+if cleanstart:
+    all_videos=[]
+else:
+    #load videos from csv
+    all_videos=load_first_column_from_csv(csv_file_path)
+   
 
 try:
     # Navigate to the YouTube video

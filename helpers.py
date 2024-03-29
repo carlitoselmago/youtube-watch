@@ -72,3 +72,20 @@ def get_last_video_from_csv(file_path):
         for row in csv_reader:
             last_line = row  # This will end up being the last row
     return last_line[0]
+
+def load_first_column_from_csv(file_path):
+    # This list will hold the first element of each row
+    first_column_data = []
+    
+    # Open the CSV file in read mode
+    with open(file_path, mode='r', encoding='utf-8') as csv_file:
+        # Create a CSV reader object
+        csv_reader = csv.reader(csv_file)
+        
+        # Iterate over each row in the CSV file
+        for row in csv_reader:
+            if row:  # Check if the row is not empty
+                # Append the first element of the row to the list
+                first_column_data.append(row[0])
+    
+    return first_column_data
