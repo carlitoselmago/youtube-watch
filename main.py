@@ -14,6 +14,7 @@ from io import BytesIO
 import os
 from helpers import *
 from time import sleep
+from queue import Queue
 
 # Your starting YouTube video URL
 
@@ -51,6 +52,9 @@ if cleanstart:
     # Check if the file exists and delete it if it does
     if os.path.exists(csv_file_path):
         os.remove(csv_file_path)
+else:
+    with open(csv_file_path, 'a'):
+        pass 
 
 # Setting up the WebDriver with webdriver-manager
 options = webdriver.ChromeOptions()
@@ -103,6 +107,8 @@ try:
             index=count_lines_in_csv(csv_file_path)
         except:
             index=0
+
+    backup_besturls=Queue(maxsize = 5)
 
     while True:
         print("---start---",video_url)
@@ -171,10 +177,16 @@ try:
                                 mse*=1000
                                 #print("mse",mse)
                                 mse_scores.append(mse)
+
+                                #apply css
+                                opacity=mse/10
+                                print("opacity",opacity)
+                                driver.execute_script(f"arguments[0].style.opacity = {mse};", thumbnail)
                             
                         except Exception as e:
                             print(f"Error downloading thumbnail {i}: {e}")
-
+                    else:
+                        driver.execute_script(f"arguments[0].style.opacity = {0.05};", thumbnail)
         #now update the model
         for img in thumbnails_img:
             image=cur.prepare_image(img)
@@ -193,7 +205,10 @@ try:
             
             #besturl=video_urls[maxindex]
             besturl=sorted_video_urls[0]
-            backup_besturl=sorted_video_urls[1]
+            try:
+                backup_besturls.put(sorted_video_urls[1])
+            except:
+                pass
 
             print("best url:",besturl)
 
@@ -216,7 +231,7 @@ try:
 
         else:
             print("got emtpy mse scores, grabbing a backup one")
-            video_url=backup_besturl
+            video_url=backup_besturls.get()
 
         #generate a clean url
         video_url=f'https://youtube.com/watch?v={extract_video_id(video_url)}'
