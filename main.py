@@ -183,40 +183,47 @@ try:
 
         
         #get the max curiosity score
-        maxindex=mse_scores.index(max(mse_scores))
-        sorted_indices = sorted(range(len(mse_scores)), key=lambda i: mse_scores[i], reverse=True)
-        sorted_mse_scores = [mse_scores[i] for i in sorted_indices]
-        sorted_video_urls = [video_urls[i] for i in sorted_indices]
-        sorted_video_titles=[video_titles[i] for i in sorted_indices]
-        
-        #besturl=video_urls[maxindex]
-        besturl=sorted_video_urls[0]
+        if len(mse_scores)>0:
 
-        print("best url:",besturl)
+            maxindex=mse_scores.index(max(mse_scores))
+            sorted_indices = sorted(range(len(mse_scores)), key=lambda i: mse_scores[i], reverse=True)
+            sorted_mse_scores = [mse_scores[i] for i in sorted_indices]
+            sorted_video_urls = [video_urls[i] for i in sorted_indices]
+            sorted_video_titles=[video_titles[i] for i in sorted_indices]
+            
+            #besturl=video_urls[maxindex]
+            besturl=sorted_video_urls[0]
+            backup_besturl=sorted_video_urls[1]
 
-        #save the best thumbnail
-        save_thumbnail(besturl,index)
+            print("best url:",besturl)
 
-        #add video url to csv
-        with open(csv_file_path, mode='a') as file:
-            # If you have headers, you can write them first as follows:
-            # file.write('Header1,Header2,Header3\n')
-            file.write(besturl + ', '+sorted_video_titles[0]+'\n')
+            #save the best thumbnail
+            save_thumbnail(besturl,index)
 
-        video_url=besturl
+            #add video url to csv
+            with open(csv_file_path, mode='a') as file:
+                # If you have headers, you can write them first as follows:
+                # file.write('Header1,Header2,Header3\n')
+                file.write(besturl + ', '+sorted_video_titles[0]+'\n')
+
+            video_url=besturl
+            #debug
+            #print("video_urls",sorted_video_urls)
+            print("mse_scores",sorted_mse_scores)
+            #print("sorted_video_titles",sorted_video_titles)
+            print("#########################################")
+            print("")
+
+        else:
+            print("got emtpy mse scores, grabbing a backup one")
+            video_url=backup_besturl
 
         #generate a clean url
         video_url=f'https://youtube.com/watch?v={extract_video_id(video_url)}'
 
         index+=1
 
-        #debug
-        #print("video_urls",sorted_video_urls)
-        print("mse_scores",sorted_mse_scores)
-        #print("sorted_video_titles",sorted_video_titles)
-        print("#########################################")
-        print("")
-
+        
         #save model
         if not cleanstart:
             cur.save_model()
