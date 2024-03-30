@@ -107,7 +107,7 @@ try:
     while True:
         print("---start---",video_url)
         driver.get(video_url)
-        sleep(1)
+        sleep(2)
         # Wait for the video player to be ready
         video_player = WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "#player"))
@@ -171,27 +171,7 @@ try:
                                 mse*=1000
                                 #print("mse",mse)
                                 mse_scores.append(mse)
-                            """    
-                            img_url = thumbnail.find_element(By.TAG_NAME, "img").get_attribute("src")
-                            if img_url:
-                                response = requests.get(img_url)
-                                img = Image.open(BytesIO(response.content))
-                                img_uri=f'thumbs/thumb_{i}.jpg'
-                                img.save(img_uri)
-                                thumbnails_img.append(img_uri)
-                                #print(f'Saved thumb_{i}.jpg')
-
-                                #do the image analysis
-                                image=cur.prepare_image(img_uri)
-                                mse=cur.predict_and_calculate_mse(image)
-                                mse*=1000
-                                #print("mse",mse)
-                                mse_scores.append(mse)
-                            else:
-                                print("??????????????????????")
-                                print("could not get img url for",video_title)
-                                print("¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿")
-                            """
+                            
                         except Exception as e:
                             print(f"Error downloading thumbnail {i}: {e}")
 
@@ -231,9 +211,9 @@ try:
         index+=1
 
         #debug
-        print("video_urls",sorted_video_urls)
+        #print("video_urls",sorted_video_urls)
         print("mse_scores",sorted_mse_scores)
-        print("sorted_video_titles",sorted_video_titles)
+        #print("sorted_video_titles",sorted_video_titles)
         print("#########################################")
         print("")
 
