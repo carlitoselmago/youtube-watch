@@ -202,15 +202,15 @@ try:
                                     mse_scores.append(mse)
 
                                     #apply css
-                                    opacity=mse/100
+                                    opacity=mse/10
                                     #print("opacity",opacity)
                                     #opacity=map_range(opacity,0.3,0.45,0.0,1.0)
 
                                     print("video_title",video_title,"opacity",opacity)
-                                    if opacity<0.5:
-                                        driver.execute_script(f"arguments[0].style.opacity = {opacity};", thumbnail)
+                                    #if opacity<0.5:
+                                    driver.execute_script(f"arguments[0].style.opacity = {opacity};", thumbnail)
                                     if dislike_boring_videos:
-                                        if opacity<0.15:
+                                        if opacity<0.3:
                                             dislikevideo(driver,thumbnail)
                                     
                                 
@@ -253,7 +253,7 @@ try:
             #save the best thumbnail
             save_thumbnail(besturl,index)
 
-            print("#now update the model",sorted_thumbnails_img)
+            #now update the model
             image=cur.prepare_image(sorted_thumbnails_img[0])
             cur.update_model_with_new_image(image,150)
 
