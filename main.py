@@ -15,6 +15,8 @@ import os
 from helpers import *
 from time import sleep
 from queue import Queue
+from selenium.webdriver.common.keys import Keys
+
 
 # Your starting YouTube video URL
 
@@ -26,6 +28,8 @@ thumb_width=320
 thumb_height=180
 
 cleanstart=False
+dislike_boring_videos=True
+play_videos=True
 
 # Define the path to your CSV file
 csv_file_path = 'saved_videos.csv'
@@ -83,7 +87,7 @@ else:
 try:
     # Navigate to the YouTube video
     driver.get('https://www.youtube.com/')
-    sleep(3)
+    sleep(2)
     # Wait for the page to load and for thumbnails to be available
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.TAG_NAME, "body"))
@@ -108,31 +112,47 @@ try:
         except:
             index=0
 
-    backup_besturls=Queue(maxsize = 5)
-
+    backup_besturls=[]
+    
     while True:
         print("---start---",video_url)
         driver.get(video_url)
-        sleep(2)
+        sleep(1)
         # Wait for the video player to be ready
         video_player = WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "#player"))
         )
-        #driver.execute_script("document.querySelector('player').play();")
-        try:
-            play_button = driver.find_element(By.CLASS_NAME, 'ytp-play-button')
-            play_button.click()
-        except:
-            pass
+        if play_videos:
+            #driver.execute_script("document.querySelector('player').play();")
+            try:
+                # First, find the mute button to check the mute status
+                mute_button = driver.find_element(By.CLASS_NAME, 'ytp-mute-button')
+                mute_status = mute_button.get_attribute('title')
+
+                # Then, determine whether the video is currently playing
+                # Note: This may require adjusting based on how you can best determine play status. This is a placeholder approach.
+                play_button = driver.find_element(By.CLASS_NAME, 'ytp-play-button')
+                play_status = play_button.get_attribute('aria-label')
+
+                # If the video is playing but muted, unmute it
+                print("mute_status",mute_status)
+                if 'Unmute' in mute_status:
+                    mute_button.click()
+                # If the video is not playing (checking if play button says "Play" as an example), and it's not muted, start playing it.
+                # This condition might need adjustment based on the actual aria-label or method to determine if playing
+                elif 'Pause' in play_status and 'Mute' in mute_status:
+                    play_button.click()
+            except:
+                pass
 
         # Click on the video player to start playing the video
         #ActionChains(driver).move_to_element(video_player).click().perform()
-        print("Video playback started.")
-        sleep(3)
+       
+        sleep(1)
         # Wait for the page to load and for thumbnails to be available
-        WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.TAG_NAME, "ytd-comments"))
-        )
+        #WebDriverWait(driver, 20).until(
+        #    EC.presence_of_element_located((By.TAG_NAME, "ytd-comments"))
+        #)
 
         # Find all related video thumbnails
         #thumbnails = driver.find_elements(By.XPATH, '//a[@id="thumbnail"][@class="yt-simple-endpoint inline-block style-scope ytd-thumbnail"]')
@@ -142,78 +162,100 @@ try:
         video_titles=[]
         thumbnails_img= []
         mse_scores=[]
+        thumbnails_list=[]
 
         # Iterate over thumbnails, download, and save them
         for i, thumbnail in enumerate(thumbnails):
-            #print(thumbnail.get_attribute("outerHTML"))
-            video_url = thumbnail.get_attribute("href")
+            if len(video_titles)<12:
+                #print(thumbnail.get_attribute("outerHTML"))
+                video_url = thumbnail.get_attribute("href")
 
-            if video_url:
-                try:
-                    video_url='https://youtube.com/watch?v='+extract_video_id(video_url)
-                except:
-                    video_url=False
                 if video_url:
-                    if video_url not in all_videos and "short" not in video_url and "channel" not in video_url:
-                        video_urls.append(video_url)
-                        all_videos.append(video_url)
-                        try:
-                            title_element =thumbnail.find_element(By.XPATH, ".//ancestor::ytd-compact-video-renderer//h3")
-                            video_title = title_element.text if title_element else "No title found"
-                            print("video_title",video_title)
-                        except:
-                            video_title="No title"
-                        video_titles.append(video_title)
-                        # Sometimes, the href might not contain a direct link to the thumbnail.
-                        # This is a simple workaround to focus on those with direct image sources.
-                        try:
-
-                            #new method
-                            img_uri=f'thumbs/thumb_{i}.jpg'
-                            if (get_small_thumbnail(video_url,img_uri)):
-                                thumbnails_img.append(img_uri)
-                                image=cur.prepare_image(img_uri)
-                                mse=cur.predict_and_calculate_mse(image)
-                                mse*=1000
-                                #print("mse",mse)
-                                mse_scores.append(mse)
-
-                                #apply css
-                                opacity=mse/10
-                                print("opacity",opacity)
-                                driver.execute_script(f"arguments[0].style.opacity = {mse};", thumbnail)
+                    try:
+                        video_url='https://youtube.com/watch?v='+extract_video_id(video_url)
+                    except:
+                        video_url=False
+                    if video_url:
+                        if video_url not in all_videos and "short" not in video_url and "channel" not in video_url:
+                            video_urls.append(video_url)
                             
-                        except Exception as e:
-                            print(f"Error downloading thumbnail {i}: {e}")
-                    else:
-                        driver.execute_script(f"arguments[0].style.opacity = {0.05};", thumbnail)
-        #now update the model
-        for img in thumbnails_img:
-            image=cur.prepare_image(img)
-            cur.update_model_with_new_image(image)
-        
+                            thumbnails_list.append(thumbnail)
+                            try:
+                                title_element =thumbnail.find_element(By.XPATH, ".//ancestor::ytd-compact-video-renderer//h3")
+                                video_title = title_element.text if title_element else "No title found"
+                                
+                            except:
+                                video_title="No title"
+                            video_titles.append(video_title)
+                            # Sometimes, the href might not contain a direct link to the thumbnail.
+                            # This is a simple workaround to focus on those with direct image sources.
+                            try:
+
+                                #new method
+                                img_uri=f'thumbs/thumb_{i}.jpg'
+                                if (get_small_thumbnail(video_url,img_uri)):
+                                    thumbnails_img.append(img_uri)
+                                    image=cur.prepare_image(img_uri)
+                                    mse=cur.predict_and_calculate_mse(image)
+                                    mse*=1000
+                                    #print("mse",mse)
+                                    mse_scores.append(mse)
+
+                                    #apply css
+                                    opacity=mse/100
+                                    #print("opacity",opacity)
+                                    #opacity=map_range(opacity,0.3,0.45,0.0,1.0)
+
+                                    print("video_title",video_title,"opacity",opacity)
+                                    if opacity<0.5:
+                                        driver.execute_script(f"arguments[0].style.opacity = {opacity};", thumbnail)
+                                    if dislike_boring_videos:
+                                        if opacity<0.15:
+                                            dislikevideo(driver,thumbnail)
+                                    
+                                
+                            except Exception as e:
+                                print(f"Error downloading thumbnail {i}: {e}")
+                        else:
+                            driver.execute_script(f"arguments[0].style.opacity = {0.05};", thumbnail)
 
         
+        driver.find_element(By.TAG_NAME,'body').send_keys(Keys.CONTROL + Keys.HOME)
+
+        for img in reversed(thumbnails_img):
+            image=cur.prepare_image(img)
+            cur.update_model_with_new_image(image,1)
+        
+        
+            
         #get the max curiosity score
         if len(mse_scores)>0:
-
+            
             maxindex=mse_scores.index(max(mse_scores))
             sorted_indices = sorted(range(len(mse_scores)), key=lambda i: mse_scores[i], reverse=True)
             sorted_mse_scores = [mse_scores[i] for i in sorted_indices]
             sorted_video_urls = [video_urls[i] for i in sorted_indices]
             sorted_video_titles=[video_titles[i] for i in sorted_indices]
-            
+            sorted_thumbnails_list=[thumbnails_list[i] for i in sorted_indices]
+            sorted_thumbnails_img=[thumbnails_img[i] for i in sorted_indices]
             #besturl=video_urls[maxindex]
             besturl=sorted_video_urls[0]
-            try:
-                backup_besturls.put(sorted_video_urls[1])
-            except:
-                pass
+           
+            
+            if len(backup_besturls)>1:
+                print("puttting on queue")
+                backup_besturls.append(sorted_video_urls[1])
+                if len(backup_besturls)>5:
+                    backup_besturls.pop(0)
 
             print("best url:",besturl)
 
             #save the best thumbnail
             save_thumbnail(besturl,index)
+
+            print("#now update the model",sorted_thumbnails_img)
+            image=cur.prepare_image(sorted_thumbnails_img[0])
+            cur.update_model_with_new_image(image,150)
 
             #add video url to csv
             with open(csv_file_path, mode='a') as file:
@@ -231,11 +273,12 @@ try:
 
         else:
             print("got emtpy mse scores, grabbing a backup one")
-            video_url=backup_besturls.get()
+            video_url=backup_besturls.pop(0)
+            
 
         #generate a clean url
         video_url=f'https://youtube.com/watch?v={extract_video_id(video_url)}'
-
+        all_videos.append(video_url)
         index+=1
 
         
@@ -246,5 +289,6 @@ try:
         
 
 finally:
-    driver.quit()
+    pass
+    #driver.quit()
 

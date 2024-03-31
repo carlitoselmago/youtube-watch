@@ -2,6 +2,9 @@ import re
 from urllib.error import HTTPError
 from urllib.request import urlretrieve
 import csv
+from time import sleep
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
 
 def extract_video_id(youtube_url):
     # Regular expression for extracting the video ID from the full YouTube URL
@@ -89,3 +92,26 @@ def load_first_column_from_csv(file_path):
                 first_column_data.append(row[0])
     
     return first_column_data
+
+def dislikevideo(driver,thumb):
+    try:
+        thumbwrap=thumb.find_element(By.XPATH,"ancestor::ytd-compact-video-renderer[1]")
+        ActionChains(driver).move_to_element(thumbwrap).perform()
+        sleep(0.2)
+        dropdown=thumb.find_element(By.XPATH, "ancestor::ytd-compact-video-renderer//ytd-menu-renderer//button[@aria-label='Action menu']")
+        action = ActionChains(driver)
+        action.move_to_element(dropdown).click().perform()
+        sleep(0.4)
+        not_interested_xpath = "//yt-formatted-string[text()='Not interested']"
+
+        # Wait until the element is clickable and then click it
+        not_interested_button = driver.find_element(By.XPATH,not_interested_xpath)
+        not_interested_button.click()
+        #sleep(4)
+    except:
+        pass #out of bounds
+
+
+def map_range(x,a,b,c,d):
+   y=(x-a)/(b-a)*(d-c)+c
+   return y
