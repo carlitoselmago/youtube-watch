@@ -176,6 +176,8 @@ try:
                     except:
                         video_url=False
                     if video_url:
+                        if video_url in all_videos:
+                            dislikevideo(driver,thumbnail)
                         if video_url not in all_videos and "short" not in video_url and "channel" not in video_url:
                             video_urls.append(video_url)
                             
@@ -202,7 +204,7 @@ try:
                                     mse_scores.append(mse)
 
                                     #apply css
-                                    opacity=mse/10
+                                    opacity=(mse/100)-1
                                     #print("opacity",opacity)
                                     #opacity=map_range(opacity,0.3,0.45,0.0,1.0)
 
@@ -210,7 +212,7 @@ try:
                                     #if opacity<0.5:
                                     driver.execute_script(f"arguments[0].style.opacity = {opacity};", thumbnail)
                                     if dislike_boring_videos:
-                                        if opacity<0.3:
+                                        if opacity<0.35:
                                             dislikevideo(driver,thumbnail)
                                     
                                 
@@ -245,7 +247,7 @@ try:
             if len(backup_besturls)>1:
                 print("puttting on queue")
                 backup_besturls.append(sorted_video_urls[1])
-                if len(backup_besturls)>5:
+                if len(backup_besturls)>10:
                     backup_besturls.pop(0)
 
             print("best url:",besturl)
