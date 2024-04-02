@@ -27,12 +27,16 @@ userprofile='/home/zorin/.var/app/com.google.Chrome/config/google-chrome/Default
 thumb_width=320
 thumb_height=180
 
+
 cleanstart=False
-dislike_boring_videos=True
+dislike_boring_videos=False
 play_videos=True
+
 
 # Define the path to your CSV file
 csv_file_path = 'saved_videos.csv'
+
+base_youtube_url='https://www.youtube.com/'
 
 ##########################################################
 
@@ -69,7 +73,7 @@ options.headless = False  # Run in headless mode
 #add ad blocker
 
 
-#driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+
 fp = webdriver.FirefoxProfile('/home/zorin/.mozilla/firefox/4ryojv0h.default-release')
 
 driver = webdriver.Firefox(fp,executable_path=r'geckodriver')
@@ -86,7 +90,7 @@ else:
 
 try:
     # Navigate to the YouTube video
-    driver.get('https://www.youtube.com/')
+    driver.get(base_youtube_url)
     sleep(2)
     # Wait for the page to load and for thumbnails to be available
     WebDriverWait(driver, 10).until(
@@ -112,16 +116,17 @@ try:
         except:
             index=0
 
-    backup_besturls=[]
+  
     
     while True:
         print("---start---",video_url)
         driver.get(video_url)
         sleep(1)
-        # Wait for the video player to be ready
-        video_player = WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "#player"))
-        )
+        if (video_url!=base_youtube_url):
+            # Wait for the video player to be ready
+            video_player = WebDriverWait(driver, 15).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "#player"))
+            )
         if play_videos:
             #driver.execute_script("document.querySelector('player').play();")
             try:
@@ -156,8 +161,8 @@ try:
 
         # Find all related video thumbnails
         #thumbnails = driver.find_elements(By.XPATH, '//a[@id="thumbnail"][@class="yt-simple-endpoint inline-block style-scope ytd-thumbnail"]')
-        thumbnails = driver.find_elements(By.ID, "thumbnail")
-
+        thumbnails = driver.find_elements(By.CLASS_NAME, "ytd-thumbnail")
+        
         video_urls = []
         video_titles=[]
         thumbnails_img= []
@@ -169,7 +174,7 @@ try:
             if len(video_titles)<12:
                 #print(thumbnail.get_attribute("outerHTML"))
                 video_url = thumbnail.get_attribute("href")
-
+                
                 if video_url:
                     try:
                         video_url='https://youtube.com/watch?v='+extract_video_id(video_url)
@@ -187,37 +192,49 @@ try:
                                 video_title = title_element.text if title_element else "No title found"
                                 
                             except:
-                                video_title="No title"
-                            video_titles.append(video_title)
-                            # Sometimes, the href might not contain a direct link to the thumbnail.
-                            # This is a simple workaround to focus on those with direct image sources.
-                            try:
+                                video_title=""
 
-                                #new method
-                                img_uri=f'thumbs/thumb_{i}.jpg'
-                                if (get_small_thumbnail(video_url,img_uri)):
-                                    thumbnails_img.append(img_uri)
-                                    image=cur.prepare_image(img_uri)
-                                    mse=cur.predict_and_calculate_mse(image)
-                                    mse*=1000
-                                    #print("mse",mse)
-                                    mse_scores.append(mse)
+                            #try for youtube homepage
+                            if video_title=="":    
+                                try:
+                                    title_element =thumbnail.find_element(By.XPATH, ".//ancestor::ytd-rich-item-renderer//h3")
+                                    video_title = title_element.text if title_element else "No title found"
+                                    
+                                except:
+                                    video_title=""
 
-                                    #apply css
-                                    opacity=(mse/100)-1
-                                    #print("opacity",opacity)
-                                    #opacity=map_range(opacity,0.3,0.45,0.0,1.0)
+                            if video_title!="":
+                                print("video_title",video_title)
+                                video_titles.append(video_title)
+                                # Sometimes, the href might not contain a direct link to the thumbnail.
+                                # This is a simple workaround to focus on those with direct image sources.
+                                try:
 
-                                    print("video_title",video_title,"opacity",opacity)
-                                    #if opacity<0.5:
-                                    driver.execute_script(f"arguments[0].style.opacity = {opacity};", thumbnail)
-                                    if dislike_boring_videos:
-                                        if opacity<0.35:
-                                            dislikevideo(driver,thumbnail)
+                                    #new method
+                                    img_uri=f'thumbs/thumb_{i}.jpg'
+                                    if (get_small_thumbnail(video_url,img_uri)):
+                                        thumbnails_img.append(img_uri)
+                                        image=cur.prepare_image(img_uri)
+                                        mse=cur.predict_and_calculate_mse(image)
+                                        mse*=1000
+                                        #print("mse",mse)
+                                        mse_scores.append(mse)
+
+                                        #apply css
+                                        opacity=(mse/100)-1
+                                        #print("opacity",opacity)
+                                        #opacity=map_range(opacity,0.3,0.45,0.0,1.0)
+
+                                        print("video_title",video_title,"opacity",opacity)
+                                        #if opacity<0.5:
+                                        driver.execute_script(f"arguments[0].style.opacity = {opacity};", thumbnail)
+                                        if dislike_boring_videos:
+                                            if opacity<0.35:
+                                                dislikevideo(driver,thumbnail)
                                     
                                 
-                            except Exception as e:
-                                print(f"Error downloading thumbnail {i}: {e}")
+                                except Exception as e:
+                                    print(f"Error downloading thumbnail {i}: {e}")
                         else:
                             driver.execute_script(f"arguments[0].style.opacity = {0.05};", thumbnail)
 
@@ -243,13 +260,7 @@ try:
             #besturl=video_urls[maxindex]
             besturl=sorted_video_urls[0]
            
-            
-            if len(backup_besturls)>1:
-                print("puttting on queue")
-                backup_besturls.append(sorted_video_urls[1])
-                if len(backup_besturls)>10:
-                    backup_besturls.pop(0)
-
+          
             print("best url:",besturl)
 
             #save the best thumbnail
@@ -274,13 +285,19 @@ try:
             print("")
 
         else:
-            print("got emtpy mse scores, grabbing a backup one")
-            video_url=backup_besturls.pop(0)
-            
+            #print("got emtpy mse scores, grabbing a backup one")
+            #video_url=backup_besturls.pop(0)
+            print("emtpy mse scores, going for home screen")
+            video_url=False
+
 
         #generate a clean url
-        video_url=f'https://youtube.com/watch?v={extract_video_id(video_url)}'
-        all_videos.append(video_url)
+        if video_url:
+            video_url=f'https://youtube.com/watch?v={extract_video_id(video_url)}'
+            all_videos.append(video_url)
+        else:
+            print("#got emtpy list to process (probably all videos are already processed")
+            video_url=base_youtube_url
         index+=1
 
         
