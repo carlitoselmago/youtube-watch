@@ -10,6 +10,9 @@ Install an adblock such as ublock origin, it will load if you load your user pro
 
 You should check the location of your profile on your system:
 
+### TODO:
+Try with random videos: https://stackoverflow.com/a/46820612
+
 ### for chrome:
 go to 
 chrome://version
