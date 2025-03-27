@@ -31,10 +31,18 @@ class curiosity():
 
         self.autoencoder=self.model()
 
-    def prepare_image(self, image):
-        image = np.asarray(Image.open(image))
-        # Normalize pixel values to [0, 1]
-        image = image.astype('float32') / 255.0
+    def prepare_image(self, image_path):
+        # Open image using PIL
+        img = Image.open(image_path)
+
+        # Resize only if dimensions don't match
+        if img.size != (self.img_width, self.img_height):
+            img = img.resize((self.img_width, self.img_height))
+
+        # Convert to NumPy array
+        image = np.asarray(img).astype('float32') / 255.0
+
+        # Add batch dimension
         image = np.expand_dims(image, axis=0)
         return image
 
