@@ -5,10 +5,11 @@ from helpers.helpers import *
 import sys
 import eel
 
+
 # SETTINGS ::::::::::::::::::::::::::::::
-source_folder = "thumbs"
-dest_folder = "sorted"
-group_number = 4 # amount of files to process
+source_folder = "/home/zorin/Pictures/esdi_imatges_al_nuvol/20240524165406"
+dest_folder = "/home/zorin/Downloads/test"
+group_number = 3 # amount of files to process
 GUI = True
 # :::::::::::::::::::::::::::::::::::::::
 
@@ -23,7 +24,6 @@ random.shuffle(files)
 
 sorted_img = []
 
-
 if GUI:
     # Initialize Eel (ensure the "web" folder contains the frontend)
     eel.init("web")
@@ -31,31 +31,49 @@ if GUI:
     # Start the GUI and keep Eel running
     eel.start("index.html", size=(300,300), default_path=source_folder,block=False,mode='firefox')
 
+runs=0
+
 while len(files)>0:
 
     group = []
     mse_scores = []
 
-    for i in range(group_number):
+    if runs==1:
+        # if second run limit to minus winner
+        group_number-=1
+    if runs>0:
+        eel.remove_all_medals()
+        # add winner to first position
+        files,group,mse_scores,img_uri=add_image_to_group(files,best_image,group,cur,mse_scores)
 
+    for i in range(group_number):
         # get a new image
         files, img_uri = get_new_file(files)
-
+        files,group,mse_scores,img_uri=add_image_to_group(files,img_uri,group,cur,mse_scores)
         if GUI:
-            eel.add_image(img_uri)
-            eel.sleep(1.0)
-
-        group.append(img_uri)
-        image=cur.prepare_image(img_uri)
-        mse=cur.predict_and_calculate_mse(image)
-        mse*=1000
-        mse_scores.append(mse)
-
+            send_image_to_js(eel,img_uri)
+        
     
+    if GUI:
+        eel.send_message("COMPUTING LESS-BORING RANK...")
+        eel.sleep(5.0)  
+
     # now update the model
     for img_uri in group:
         image=cur.prepare_image(img_uri)
         cur.update_model_with_new_image(image,1)
+
+    if GUI:
+        mse_scores_norm=[float(i)/sum(mse_scores) for i in mse_scores]
+        scores_str="["
+        for s in mse_scores_norm:
+            scores_str+=str(round(s,2))+","
+        scores_str=scores_str[0:-1]
+        scores_str+="]"
+        eel.send_message(f"RESULTS: {scores_str}")
+        eel.rank(mse_scores)
+        eel.sleep(5.0)
+
 
     # sort by curiosity score
     maxindex=mse_scores.index(max(mse_scores))
@@ -67,7 +85,14 @@ while len(files)>0:
     best_image = sorted_imgs[0]
 
     # save best image to folder
-    move_image(dest_folder,best_image)
+    #move_image(dest_folder,best_image)
+    copy_image(dest_folder,best_image)
     sorted_img.append(best_image)
     
-    files = read_files(source_folder)
+    if GUI:
+        eel.end_round()
+        eel.sleep(2.0)
+
+    #files = read_files(source_folder)
+
+    runs +=1

@@ -1,0 +1,100 @@
+html,
+body {
+    background-color: black;
+    height: 100%;
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    overflow: hidden;
+}
+
+body {
+    height: 100%;
+    margin: 0px;
+}
+
+header {
+    display: flex;
+    padding: 20px 30px;
+    font-size: 26px;
+    justify-content: space-between;
+}
+
+main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    position: fixed;
+    width: 100%;
+    top: 0px;
+    left: 0px;
+}
+
+h1 {
+    font-size: 14px;
+    align-content: center;
+    margin-top: -15px;
+}
+
+.images {
+    display: flex;
+    width: 90vw;
+}
+
+.images .image {
+    transform: scale(0);
+    padding: 20px;
+    width: 33%;
+    padding: 1vw;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.images .image img {
+    width: 100%;
+    height: auto;
+}
+
+.images .image.show {
+    
+    transform: scale(1);
+    transition: all 1s;
+}
+
+.medal {
+    font-size: 5vw;
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    bottom: -4vh;
+    z-index: 10;
+    transform: scale(0);
+    transition: all 0.2s;
+}
+
+.medal.show {
+    transform: scale(1);
+}
+
+.disapear {
+    position: relative;
+    /* Needed for 'top' to work */
+    animation: slideUpOut 1s ease-in forwards;
+}
+
+@keyframes slideUpOut {
+    0% {
+        top: 0;
+
+    }
+
+    100% {
+        margin-top: -150vh;
+        /* You can adjust this to go further up */
+
+    }
+}

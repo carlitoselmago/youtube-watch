@@ -12,7 +12,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 import os
-from helpers import *
+from helpers.helpers import *
 from time import sleep
 from queue import Queue
 from selenium.webdriver.common.keys import Keys
