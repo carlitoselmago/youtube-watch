@@ -6,8 +6,6 @@ from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 
-
-
 def extract_video_id(youtube_url):
     # Regular expression for extracting the video ID from the full YouTube URL
     match = re.search(r"(?<=v=)[^&#]+", youtube_url)

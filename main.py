@@ -12,7 +12,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 import os
-from helpers.youtubehelpers import *
+from helpers import *
 from time import sleep
 from queue import Queue
 from selenium.webdriver.common.keys import Keys
@@ -28,7 +28,7 @@ thumb_width=320
 thumb_height=180
 
 
-cleanstart=True
+cleanstart=False
 dislike_boring_videos=False
 play_videos=True
 
