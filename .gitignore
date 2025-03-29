@@ -1,5 +1,7 @@
 sorted/
 test/
+input/
+images/
 *.jpg
 *.png
 # Byte-compiled / optimized / DLL files

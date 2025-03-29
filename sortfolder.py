@@ -7,8 +7,8 @@ import eel
 
 
 # SETTINGS ::::::::::::::::::::::::::::::
-source_folder = "/home/zorin/Pictures/esdi_imatges_al_nuvol/20240524165406"
-dest_folder = "/home/zorin/Downloads/test"
+source_folder = "images/input" # without ending slash
+dest_folder = "images/output" # without ending slash
 group_number = 3 # amount of files to process
 GUI = True
 # :::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,7 @@ def copy_image(dest_folder, img):
     parsed = urlparse(img)
     filename = os.path.basename(parsed.path)
     print("filename", filename)
-    shutil.copy(img, os.path.join(dest_folder, filename))
+    shutil.copyfile(img, os.path.join(dest_folder, filename))
 
 def is_img_uri(img_uri):
     img_uri=img_uri.lower()
