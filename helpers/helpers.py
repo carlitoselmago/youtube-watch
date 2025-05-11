@@ -9,6 +9,14 @@ def get_new_file(files):
     new_image = files.pop()
     return files, new_image
 
+def list2string(mse_scores):
+    mse_scores_norm=[float(i)/sum(mse_scores) for i in mse_scores]
+    scores_str="["
+    for s in mse_scores_norm:
+        scores_str+=str(round(s,2))+","
+    scores_str=scores_str[0:-1]
+    scores_str+="]"
+    return scores_str
 
 def move_image(dest_folder,img):
     parsed= urlparse(img)

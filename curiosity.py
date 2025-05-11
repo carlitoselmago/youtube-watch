@@ -48,7 +48,9 @@ class curiosity():
 
         # Add batch dimension
         image = np.expand_dims(image, axis=0)
+        
         return image
+       
     
     def predict_and_calculate_mse(self,image):
         try:

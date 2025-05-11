@@ -59,6 +59,16 @@ $(document).ready(function () {
 
         if (values.length !== $wrappers.length) {
             console.error("Mismatch between values and image count");
+            ///////
+            /*
+            let c=0;
+            $wrappers.forEach(el => {
+                if (c>2){
+                    $(el).remove();
+                }
+                c+=1;
+            });
+            */
             return;
         }
 
@@ -97,6 +107,7 @@ $(document).ready(function () {
             $(".loser").addClass("disapear")
             setTimeout(function () {
                 //destroy
+                $(".winner").removeClass("winner");
                 $(".loser").remove();
             }, 1000);
         }, 200);

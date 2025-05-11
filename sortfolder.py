@@ -35,6 +35,7 @@ runs=0
 
 while len(files)>0:
 
+    group_count=0
     group = []
     mse_scores = []
 
@@ -46,12 +47,18 @@ while len(files)>0:
         # add winner to first position
         files,group,mse_scores,img_uri=add_image_to_group(files,best_image,group,cur,mse_scores)
 
-    for i in range(group_number):
+    while group_count < group_number:
+    #for i in range(group_number):
         # get a new image
-        files, img_uri = get_new_file(files)
-        files,group,mse_scores,img_uri=add_image_to_group(files,img_uri,group,cur,mse_scores)
-        if GUI:
-            send_image_to_js(eel,img_uri)
+        try:
+            files, img_uri = get_new_file(files)
+            files,group,mse_scores,img_uri=add_image_to_group(files,img_uri,group,cur,mse_scores)
+            if GUI:
+                send_image_to_js(eel,img_uri)
+            group_count+=1
+        except Exception as e:
+            pass
+    
         
     
     if GUI:
@@ -60,8 +67,12 @@ while len(files)>0:
 
     # now update the model
     for img_uri in group:
-        image=cur.prepare_image(img_uri)
-        cur.update_model_with_new_image(image,1)
+        try:
+            image=cur.prepare_image(img_uri)
+            
+            cur.update_model_with_new_image(image,1)
+        except Exception as e:
+            print("coundn't update model with image",e)
 
     if GUI:
         mse_scores_norm=[float(i)/sum(mse_scores) for i in mse_scores]
@@ -96,3 +107,14 @@ while len(files)>0:
     #files = read_files(source_folder)
 
     runs +=1
+    
+
+    if len(files)==1:
+        if len(sorted_img)>0:
+            files=sorted_img
+        else:
+            print("FIN")
+            files = read_files(source_folder)
+            # shuffle files in random order
+            random.shuffle(files)
+            sorted_img = []
