@@ -1,1 +1,6 @@
+# conda install -c conda-forge opencv
 eel
+pillow
+tensorflow
+selenium
+webdriver-manager

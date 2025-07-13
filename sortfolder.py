@@ -29,10 +29,10 @@ if GUI:
     eel.init("web")
 
     # Start the GUI and keep Eel running
-    eel.start("index.html", size=(300,300), default_path=source_folder,block=False,mode='firefox')
+    eel.start("index.html", size=(300,300), default_path=source_folder,block=False)#mode='firefox'
 
 runs=0
-
+print(len(files))
 while len(files)>0:
 
     group_count=0
